@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+"""Run Omarchy components without desktop input or device writes."""
+import os,subprocess,tempfile
+from pathlib import Path
+root=Path(__file__).resolve().parents[1]
+with tempfile.TemporaryDirectory(prefix='micro-qml-') as d:
+    Path(d,'qs').symlink_to('/usr/share/omarchy/shell',target_is_directory=True)
+    Path(d,'Micro').symlink_to(root,target_is_directory=True)
+    for module in ('Commons','Ui'): Path(d,module).symlink_to('/usr/share/omarchy/shell/'+module,target_is_directory=True)
+    backend=Path(d,'Backend');(backend/'scripts').mkdir(parents=True)
+    (backend/'Service.qml').write_text((root/'Service.qml').read_text())
+    fixture=backend/'scripts/micro';fixture.write_text((root/'tests/fixtures/micro-backend').read_text());fixture.chmod(0o755)
+    env={**os.environ,'QT_QPA_PLATFORM':'offscreen','QML_IMPORT_PATH':d}
+    env.pop('WAYLAND_DISPLAY',None)
+    for test in sorted((root/'tests/qml').glob('tst_*.qml')):
+        Path(d,'shell.qml').write_text(test.read_text())
+        test_env=env
+        if test.name == "tst_mappings.qml":
+            test_env={**env,"QT_QPA_PLATFORM":"wayland","WAYLAND_DISPLAY":os.environ["WAYLAND_DISPLAY"]}
+        result=subprocess.run(['quickshell','--no-color','-p',d],env=test_env,capture_output=True,text=True,timeout=20)
+        print(result.stdout+result.stderr)
+        if result.returncode or 'MICRO TEST PASS' not in result.stdout+result.stderr: raise SystemExit(1)

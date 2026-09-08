@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "fraction12.codex-micro",
+  "name": "Codex Micro",
+  "version": "0.1.0",
+  "author": "Dushyant",
+  "license": "MIT",
+  "description": "Typed desktop and workflow layers for the Codex Micro, preserving its Codex layer.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Codex Micro",
+    "description": "Device connection and layer mappings",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  },
+  "keepLoaded": true
+}

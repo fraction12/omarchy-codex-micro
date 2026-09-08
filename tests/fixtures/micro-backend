@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""Isolated process fixture for the real QML autosave service. No HID access."""
+import json,sys,time,hashlib
+from pathlib import Path
+p=Path(__file__).resolve().parent.parent/'state.json'
+if not p.exists():
+    p.write_text(json.dumps({'version':1,'profile':0,'layers':{'2':{'name':'PC','bindings':{'key00':{'label':'Enter','action':{'kind':'key','key':'KC_ENT'}}}},'3':{'name':'Work','bindings':{}}}}))
+history=p.with_name('history.json')
+previous=json.loads(history.read_text()) if history.exists() else {}
+raw=p.read_bytes();revision=hashlib.sha256(raw).hexdigest()
+if sys.argv[1]=='status': print(json.dumps({'connected':True,'battery':80}))
+elif sys.argv[1]=='editor-state': print(json.dumps({'config':json.loads(raw),'revision':revision,'options':[],'previous_layers':previous}))
+elif sys.argv[1]=='save-config':
+    request=json.loads(sys.stdin.readline())
+    if request['expected_sha256']!=revision: print(json.dumps({'error':'Stale revision'}));sys.exit(1)
+    time.sleep(1)
+    old=json.loads(raw)
+    for n in ('2','3'):
+        if old['layers'][n]['bindings']!=request['config']['layers'][n]['bindings']:previous[n]=old['layers'][n]['bindings']
+    history.write_text(json.dumps(previous))
+    raw=json.dumps(request['config']).encode();p.write_bytes(raw)
+    print(json.dumps({'saved':True,'config':request['config'],'revision':hashlib.sha256(raw).hexdigest(),'previous_layers':previous}))
+else: sys.exit(2)

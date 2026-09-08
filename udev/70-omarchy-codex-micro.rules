@@ -1,0 +1,5 @@
+# Allow only the active desktop user to access the Codex Micro vendor interface.
+ACTION!="remove", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="8360", TAG+="uaccess"
+
+# Bluetooth HID uses a HID parent rather than USB vendor/product attributes.
+ACTION!="remove", SUBSYSTEM=="hidraw", KERNELS=="0005:303A:8360.*", TAG+="uaccess"

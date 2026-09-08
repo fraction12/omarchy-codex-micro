@@ -1,0 +1,5 @@
+[project]
+name = "omarchy-codex-micro"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Typed Codex Micro layers for Omarchy"

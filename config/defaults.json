@@ -1,0 +1,272 @@
+{
+  "$schema": "./mappings.schema.json",
+  "version": 1,
+  "profile": 0,
+  "quick_micro": false,
+  "layers": {
+    "2": {
+      "name": "Desktop",
+      "bindings": {
+        "key00": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key01": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key02": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key03": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key04": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key05": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key06": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key07": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key08": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key09": {
+          "label": "Backspace",
+          "action": {
+            "kind": "key",
+            "key": "KC_BSPC"
+          }
+        },
+        "key10": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key11": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key12": {
+          "label": "Enter",
+          "action": {
+            "kind": "key",
+            "key": "KC_ENT"
+          }
+        },
+        "dial_left": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "dial_right": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "dial_press": {
+          "label": "Escape",
+          "action": {
+            "kind": "key",
+            "key": "KC_ESC"
+          }
+        },
+        "stick_up": {
+          "label": "Up",
+          "action": {
+            "kind": "key",
+            "key": "KC_UP"
+          }
+        },
+        "stick_right": {
+          "label": "Right",
+          "action": {
+            "kind": "key",
+            "key": "KC_RGHT"
+          }
+        },
+        "stick_down": {
+          "label": "Down",
+          "action": {
+            "kind": "key",
+            "key": "KC_DOWN"
+          }
+        },
+        "stick_left": {
+          "label": "Left",
+          "action": {
+            "kind": "key",
+            "key": "KC_LEFT"
+          }
+        }
+      }
+    },
+    "3": {
+      "name": "Work",
+      "bindings": {
+        "key00": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key01": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key02": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key03": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key04": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key05": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key06": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key07": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key08": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key09": {
+          "label": "Backspace",
+          "action": {
+            "kind": "key",
+            "key": "KC_BSPC"
+          }
+        },
+        "key10": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key11": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "key12": {
+          "label": "Enter",
+          "action": {
+            "kind": "key",
+            "key": "KC_ENT"
+          }
+        },
+        "dial_left": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "dial_right": {
+          "label": "Unassigned",
+          "action": {
+            "kind": "noop"
+          }
+        },
+        "dial_press": {
+          "label": "Escape",
+          "action": {
+            "kind": "key",
+            "key": "KC_ESC"
+          }
+        },
+        "stick_up": {
+          "label": "Up",
+          "action": {
+            "kind": "key",
+            "key": "KC_UP"
+          }
+        },
+        "stick_right": {
+          "label": "Right",
+          "action": {
+            "kind": "key",
+            "key": "KC_RGHT"
+          }
+        },
+        "stick_down": {
+          "label": "Down",
+          "action": {
+            "kind": "key",
+            "key": "KC_DOWN"
+          }
+        },
+        "stick_left": {
+          "label": "Left",
+          "action": {
+            "kind": "key",
+            "key": "KC_LEFT"
+          }
+        }
+      }
+    }
+  }
+}

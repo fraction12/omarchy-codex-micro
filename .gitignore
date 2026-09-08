@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+
+# User-owned mappings and legacy personal helper; never shipped.
+config/mappings.json
+scripts/workbox-docker
+.env
+.env.*
+*.log
