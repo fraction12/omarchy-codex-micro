@@ -245,7 +245,8 @@ BarWidget {
                 enabled: !!root.micro && !root.micro.busy
                 onChanged: value => root.assignApp(value)
             }
-            ButtonGroup {
+            ControlButtonGroup {
+                Layout.fillWidth: true
                 options: root.controlOptions()
                 value: root.selectedControl + ":" + root.selectedGesture
                 fontSize: Style.font.bodySmall
