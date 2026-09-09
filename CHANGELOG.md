@@ -10,6 +10,8 @@ Initial release preparation:
 - App focus routing and push-to-talk release protection.
 - Global Quick Micro dial-double popup toggle with reversible layer-1 overlay.
 - Portable defaults, separate local mappings, and automated Python checks.
+- Full-width control rows and recoverable install/update/uninstall host changes.
+- Python 3.11/3.13 compatibility checks and GitHub noreply commit identity.
 
 Known boundary: firmware 0.6.2 on one Omarchy workstation. Additional-machine
 installation and a complete physical-device regression pass remain outstanding.

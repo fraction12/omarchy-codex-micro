@@ -27,3 +27,16 @@ These observations are bounded tests, not proof of every firmware interaction.
 Use backups and a harmless target application. Do not publish raw device files
 or personal mappings as test artifacts. Hosted CI has no Micro or compositor;
 its Python tests do not replace these checks.
+
+## Alpha release preparation — 2026-09-09
+
+- 78 Python tests passed on Python 3.11.16 and 3.13.15 in temporary runtimes.
+- Isolated-home tests cover install, repeated install, uninstall, unsupported
+  Lua API, refusal to remove foreign files, and failed-install rollback.
+- Personal author and committer emails were replaced with the maintainer's
+  GitHub noreply identity. A private local bundle retains the original history.
+- GitHub-hosted CI remains subject to the account billing restriction; local
+  matrix results are not represented as hosted-CI success.
+
+The isolated-home tests mock desktop commands. They do not count as a second
+physical-machine installation. This is an alpha release, not a stable release.

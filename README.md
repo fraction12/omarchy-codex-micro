@@ -45,11 +45,11 @@ these changes from its cached configuration.
 
 ## Install
 
-Clone the repository somewhere permanent. While this repository is private,
-you need GitHub access to clone it.
+Clone the repository somewhere permanent. If the repository is private,
+authenticate with GitHub first.
 
 ```bash
-gh repo clone fraction12/omarchy-codex-micro
+git clone https://github.com/fraction12/omarchy-codex-micro.git
 cd omarchy-codex-micro
 scripts/install
 ```
@@ -63,6 +63,7 @@ Micro off. Installation does **not** upload these defaults to the device.
 The checkout is linked at `~/.config/omarchy/plugins/fraction12.codex-micro`.
 The installer backs up host bindings, adds one generated-file include to
 `~/.config/hypr/bindings.lua`, validates/reloads Hyprland, and enables the widget.
+Failed setup steps restore the host files and plugin link from a private backup.
 Open it from the bar and assign your controls. The first action change uploads
 the complete configured layers 2 and 3; inspect the starter mappings first.
 

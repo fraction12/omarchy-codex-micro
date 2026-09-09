@@ -16,7 +16,8 @@ from codex_micro.storage import STATE
 for command in ('omarchy','omarchy-shell','hyprctl'):
     if shutil.which(command) is None:raise SystemExit('Missing required command: '+command)
 # This plugin targets the Lua-based Omarchy/Hyprland API.
-subprocess.run(['hyprctl','repl','return type(hl.is_key_down) == "function"'],check=True,capture_output=True)
+api=subprocess.run(['hyprctl','repl','return type(hl.is_key_down) == "function"'],check=True,capture_output=True,text=True)
+if api.stdout.strip()!='true':raise SystemExit('The required Hyprland Lua input API is unavailable')
 from codex_micro.configuration import initialize
 initialize(CONFIG,root/'config/defaults.json')
 load_config(CONFIG)
@@ -26,32 +27,24 @@ for bind in binds:
     if bind.get('modmask') in (64,65,68,69) and (bind.get('keycode') in range(191,201) or bind.get('key') in [f'F{i}' for i in range(13,23)] + ['XF86Tools','XF86Launch5','XF86Launch6','XF86Launch7','XF86Launch8','XF86Launch9','XF86AudioMicMute','XF86TouchpadToggle','XF86TouchpadOn']) and not bind.get('description','').startswith('Micro: '):
         raise SystemExit('Existing shortcut conflicts: '+str(bind))
 link=Path.home()/'.config/omarchy/plugins/fraction12.codex-micro'
-if link.exists() or link.is_symlink():
-    if link.resolve()!=root:raise SystemExit('Plugin path already belongs to another directory')
-else:
-    link.parent.mkdir(parents=True,exist_ok=True)
-    link.symlink_to(root,target_is_directory=True)
+from codex_micro.host_setup import owned_files,transaction,reload_hyprland
+from codex_micro.editor import atomic_write
 base=Path.home()/'.config/hypr'
 bindings=base/'bindings.lua'
 generated=base/'codex-micro.lua'
+settings=Path.home()/'.config/omarchy/shell.json'
+owned_files(link,root,generated)
 marker='-- Omarchy Codex Micro: versioned mappings in the plugin checkout.'
 line='dofile(os.getenv("HOME") .. "/.config/hypr/codex-micro.lua")'
 text=bindings.read_text()
-backup=STATE/'host-backups'/time.strftime('%Y%m%dT%H%M%S')
-backup.mkdir(parents=True,mode=0o700)
-shutil.copy2(bindings,backup/'bindings.lua')
-if generated.exists():shutil.copy2(generated,backup/'codex-micro.lua')
 new=binding_text(load_config(CONFIG))
-generated.write_text(new)
-if line not in text:bindings.write_text(text.rstrip()+'\n\n'+marker+'\n'+line+'\n')
-subprocess.run(['hyprctl','reload'],check=True,stdout=subprocess.DEVNULL)
-errors=subprocess.check_output(['hyprctl','configerrors'],text=True).strip()
-if errors:
-    shutil.copy2(backup/'bindings.lua',bindings)
-    if (backup/'codex-micro.lua').exists():shutil.copy2(backup/'codex-micro.lua',generated)
-    else:generated.unlink(missing_ok=True)
-    subprocess.run(['hyprctl','reload'],check=True)
-    raise SystemExit('Hyprland rejected configuration; restored host files: '+errors)
-subprocess.run(['omarchy-shell','shell','rescanPlugins'],check=True)
-subprocess.run(['omarchy','plugin','enable','fraction12.codex-micro','--section','right'],check=True)
+with transaction([bindings,generated,settings],link,STATE) as backup:
+    if not link.is_symlink():
+        link.parent.mkdir(parents=True,exist_ok=True)
+        link.symlink_to(root,target_is_directory=True)
+    atomic_write(generated,new.encode())
+    if line not in text:atomic_write(bindings,(text.rstrip()+'\n\n'+marker+'\n'+line+'\n').encode())
+    reload_hyprland()
+    subprocess.run(['omarchy-shell','shell','rescanPlugins'],check=True)
+    subprocess.run(['omarchy','plugin','enable','fraction12.codex-micro','--section','right'],check=True)
 print(json.dumps({'installed':str(link),'host_backup':str(backup),'device_changed':False}))
