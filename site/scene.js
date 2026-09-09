@@ -14,6 +14,10 @@ function dot(x, y, z, light = 1) {
 }
 function line(ax, ay, az, bx, by, bz, spacing = 3, light = 1) {
   const count = Math.ceil(Math.hypot(bx - ax, by - ay, bz - az) / spacing);
+  if (count === 0) {
+    dot(ax, ay, az, light);
+    return;
+  }
   for (let i = 0; i <= count; i++) {
     const t = i / count;
     dot(ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t, light);
@@ -80,6 +84,8 @@ for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
 ring(-102, 104, 15, 20, 0.8);
 key(-1, 104, 124, 55);
 key(102, 104);
+// Flip the control layout before adding upright key legends.
+for (const point of points) point.x *= -1;
 // Small key legends, indicated as luminous marks rather than fake UI text.
 for (const y of [-102, -34, 34])
   for (const x of [-102, -34, 34, 102]) {
@@ -99,8 +105,8 @@ for (let x = -36; x <= 36; x += 6)
     2,
     1.3,
   );
-line(108, 98, 25, 108, 107, 25, 2, 1);
-line(108, 107, 25, 97, 107, 25, 2, 1);
+line(-96, 98, 25, -96, 107, 25, 2, 1);
+line(-96, 107, 25, -107, 107, 25, 2, 1);
 for (let i = 0; i < 350; i++) {
   const x = (random() - 0.5) * 275,
     y = (random() - 0.5) * 300;
@@ -113,135 +119,202 @@ const stars = Array.from({ length: 1000 }, () => ({
   size: random() > 0.96 ? 2 : 1,
 }));
 const motionButton = document.querySelector("#pause-motion");
-let autoMotion = !reduced.matches,
-  clock = 0;
-function motionLabel() {
-  motionButton.textContent = autoMotion ? "Pause motion" : "Play motion";
-  motionButton.setAttribute("aria-pressed", String(!autoMotion));
-}
-motionLabel();
+let autoMotion = !reduced.matches;
 let width = 0,
   height = 0,
   ratio = 1,
-  dragging = false,
+  pointer = null,
   lastX = 0,
   lastY = 0,
   yaw = -0.28,
   pitch = 0.4,
-  targetYaw = yaw,
-  targetPitch = pitch,
+  orbitTime = 0,
   frame = 0,
   visible = true,
-  lastTime = 0;
-function resize() {
-  const r = canvas.getBoundingClientRect();
-  width = r.width;
-  height = r.height;
-  ratio = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = Math.round(width * ratio);
-  canvas.height = Math.round(height * ratio);
-  draw();
-}
-function project(p) {
-  const viewYaw = yaw + (autoMotion ? Math.sin(clock / 4200) * 0.12 : 0),
-    viewPitch = pitch + (autoMotion ? Math.cos(clock / 5100) * 0.06 : 0);
-  const cy = Math.cos(viewYaw),
-    sy = Math.sin(viewYaw),
-    cx = Math.cos(viewPitch),
-    sx = Math.sin(viewPitch);
-  const x = p.x * cy + p.z * sy,
-    z = -p.x * sy + p.z * cy,
-    y = p.y * cx - z * sx,
-    zz = p.y * sx + z * cx;
-  const scale =
-    (Math.min(width / (width < 760 ? 420 : 560), height / 465, 1.8) * 720) /
-    (720 + zz);
-  return {
-    x: width / 2 + x * scale,
-    y: height * 0.48 + y * scale,
-    z: zz,
-    scale,
-  };
-}
-function draw() {
-  if (!width) return;
-  context.setTransform(ratio, 0, 0, ratio, 0, 0);
-  context.fillStyle = "#0e1018";
-  context.fillRect(0, 0, width, height);
-  for (const s of stars) {
-    const x = (s.x * width + yaw * 12 * s.z + width) % width,
-      y = (s.y * height + pitch * 12 * s.z + height) % height;
-    context.fillStyle = `rgba(132,164,216,${0.14 + s.z * 0.4})`;
-    context.fillRect(x, y, s.size, s.size);
-  }
-  const sorted = points
-    .map((p) => ({ ...project(p), light: p.light, size: p.size }))
-    .sort((a, b) => b.z - a.z);
-  for (const p of sorted) {
-    const alpha = Math.min(0.96, Math.max(0.08, p.light * (0.95 - p.z / 650)));
-    context.fillStyle = `rgba(${p.light > 1 ? 234 : 172},${p.light > 1 ? 244 : 208},255,${alpha})`;
-    const size = Math.max(1, p.size * p.scale * 0.8);
-    if (p.light > 0.18) {
-      context.font = `700 ${Math.max(6, 5.4 * p.scale)}px monospace`;
-      context.fillText(
-        p.size > 1 ? "#" : p.light > 1 ? "+" : p.light > 0.6 ? "*" : ".",
-        p.x,
-        p.y,
+  lastTime = null;
+
+// Rasterize the small ASCII alphabet once, at the display's pixel density.
+// Drawing cached glyphs avoids thousands of fractional font rasterizations per frame.
+const glyphs = document.createElement("canvas");
+const background = document.createElement("canvas");
+const cell = 20;
+const alphabet = [".", "*", "+", "#"];
+const order = points.map((_, index) => index);
+const projectedX = new Float32Array(points.length);
+const projectedY = new Float32Array(points.length);
+const depth = new Float32Array(points.length);
+const scales = new Float32Array(points.length);
+const glyphColumns = points.map(
+  (p) =>
+    (p.size > 1 ? 3 : p.light > 1 ? 2 : p.light > 0.6 ? 1 : 0) +
+    (p.light > 1 ? 4 : 0),
+);
+function cacheArtwork() {
+  glyphs.width = cell * 8 * ratio;
+  glyphs.height = cell * 11 * ratio;
+  const ink = glyphs.getContext("2d");
+  ink.setTransform(ratio, 0, 0, ratio, 0, 0);
+  for (let size = 6; size <= 16; size++) {
+    ink.font = `700 ${size}px monospace`;
+    for (let column = 0; column < 8; column++) {
+      ink.fillStyle = column < 4 ? "#acd0ff" : "#eaf4ff";
+      ink.fillText(
+        alphabet[column % 4],
+        column * cell + 2,
+        (size - 6) * cell + 16,
       );
-    } else {
-      context.fillRect(p.x, p.y, size, size);
     }
   }
+  background.width = canvas.width;
+  background.height = canvas.height;
+  const sky = background.getContext("2d", { alpha: false });
+  sky.setTransform(ratio, 0, 0, ratio, 0, 0);
+  sky.fillStyle = "#0e1018";
+  sky.fillRect(0, 0, width, height);
+  for (const star of stars) {
+    sky.fillStyle = `rgba(132,164,216,${0.14 + star.z * 0.4})`;
+    sky.fillRect(star.x * width, star.y * height, star.size, star.size);
+  }
+}
+function motionLabel() {
+  motionButton.textContent = autoMotion ? "Pause motion" : "Play motion";
+  motionButton.setAttribute("aria-pressed", String(!autoMotion));
+}
+function clampPitch(value) {
+  return Math.max(-1.1, Math.min(1.1, value));
+}
+function stopMotion() {
+  if (autoMotion) {
+    // Keep the pose already on screen when a visitor grabs or pauses it.
+    yaw += Math.sin(orbitTime / 4200) * 0.12;
+    pitch = clampPitch(pitch + (Math.cos(orbitTime / 5100) - 1) * 0.06);
+    autoMotion = false;
+  }
+  orbitTime = 0;
+  lastTime = null;
+  motionLabel();
+}
+function resize() {
+  const bounds = canvas.getBoundingClientRect();
+  const nextRatio = Math.min(devicePixelRatio || 1, 2);
+  if (width === bounds.width && height === bounds.height && ratio === nextRatio)
+    return;
+  width = bounds.width;
+  height = bounds.height;
+  ratio = nextRatio;
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
+  cacheArtwork();
+  update();
+}
+function draw() {
+  if (!width || !height) return;
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.globalAlpha = 1;
+  context.drawImage(background, 0, 0, width, height);
+  const viewYaw = yaw + (autoMotion ? Math.sin(orbitTime / 4200) * 0.12 : 0);
+  const viewPitch = clampPitch(
+    pitch + (autoMotion ? (Math.cos(orbitTime / 5100) - 1) * 0.06 : 0),
+  );
+  const cy = Math.cos(viewYaw),
+    sy = Math.sin(viewYaw);
+  const cx = Math.cos(viewPitch),
+    sx = Math.sin(viewPitch);
+  const perspective =
+    Math.min(width / (width < 760 ? 420 : 560), height / 465, 1.8) * 720;
+  for (let index = 0; index < points.length; index++) {
+    const p = points[index];
+    const x = p.x * cy + p.z * sy;
+    const z = -p.x * sy + p.z * cy;
+    const y = p.y * cx - z * sx;
+    depth[index] = p.y * sx + z * cx;
+    const scale = perspective / (720 + depth[index]);
+    projectedX[index] = width / 2 + x * scale;
+    projectedY[index] = height * 0.48 + y * scale;
+    scales[index] = scale;
+  }
+  order.sort((a, b) => depth[b] - depth[a] || a - b);
+  context.fillStyle = "#acd0ff";
+  for (const index of order) {
+    const p = points[index];
+    const scale = scales[index];
+    context.globalAlpha = Math.min(
+      0.96,
+      Math.max(0.08, p.light * (0.95 - depth[index] / 650)),
+    );
+    const x = Math.round(projectedX[index] * ratio) / ratio;
+    const y = Math.round(projectedY[index] * ratio) / ratio;
+    if (p.light > 0.18) {
+      const fontSize = Math.min(16, Math.max(6, Math.round(5.4 * scale)));
+      const glyphWidth = Math.ceil(fontSize * 0.7) + 2;
+      const glyphHeight = fontSize + 2;
+      context.drawImage(
+        glyphs,
+        (glyphColumns[index] * cell + 1) * ratio,
+        ((fontSize - 6) * cell + 16 - fontSize) * ratio,
+        glyphWidth * ratio,
+        glyphHeight * ratio,
+        x - 1,
+        y - fontSize,
+        glyphWidth,
+        glyphHeight,
+      );
+    } else {
+      const size = Math.max(1, p.size * scale * 0.8);
+      context.fillRect(x, y, size, size);
+    }
+  }
+  context.globalAlpha = 1;
 }
 function animate(time) {
   frame = 0;
   if (!visible || document.hidden) return;
-  if (time - lastTime > 30) {
-    yaw += (targetYaw - yaw) * 0.13;
-    pitch += (targetPitch - pitch) * 0.13;
-    clock = time;
-    draw();
+  if (autoMotion) {
+    if (lastTime !== null) orbitTime += Math.min(time - lastTime, 50);
     lastTime = time;
   }
-  if (
-    autoMotion ||
-    Math.abs(targetYaw - yaw) + Math.abs(targetPitch - pitch) > 0.001
-  )
-    frame = requestAnimationFrame(animate);
+  draw();
+  if (autoMotion) update();
 }
 function update() {
-  if (reduced.matches) {
-    yaw = targetYaw;
-    pitch = targetPitch;
-    draw();
-  } else if (!frame) frame = requestAnimationFrame(animate);
+  if (visible && !document.hidden && !frame)
+    frame = requestAnimationFrame(animate);
 }
 canvas.addEventListener("pointerdown", (event) => {
-  dragging = true;
-  autoMotion = false;
-  motionLabel();
+  if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+  pointer = event.pointerId;
+  stopMotion();
   lastX = event.clientX;
   lastY = event.clientY;
-  canvas.setPointerCapture(event.pointerId);
+  canvas.setPointerCapture(pointer);
   canvas.classList.add("dragging");
 });
 canvas.addEventListener("pointermove", (event) => {
-  if (!dragging) return;
-  targetYaw += (event.clientX - lastX) * 0.008;
-  targetPitch = Math.max(
-    -1.1,
-    Math.min(1.1, targetPitch + (event.clientY - lastY) * 0.006),
-  );
+  if (event.pointerId !== pointer) return;
+  // Direct input, painted once on the next display frame. No easing or frame cap.
+  yaw += (event.clientX - lastX) * 0.008;
+  pitch = clampPitch(pitch + (event.clientY - lastY) * 0.006);
   lastX = event.clientX;
   lastY = event.clientY;
   update();
 });
-function release() {
-  dragging = false;
+function release(event) {
+  if (event.pointerId !== pointer) return;
+  pointer = null;
   canvas.classList.remove("dragging");
+  if (canvas.hasPointerCapture(event.pointerId))
+    canvas.releasePointerCapture(event.pointerId);
 }
 canvas.addEventListener("pointerup", release);
 canvas.addEventListener("pointercancel", release);
+canvas.addEventListener("lostpointercapture", release);
+function reset() {
+  yaw = -0.28;
+  pitch = 0.4;
+  orbitTime = 0;
+  lastTime = null;
+  update();
+}
 canvas.addEventListener("keydown", (event) => {
   if (
     !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home"].includes(
@@ -250,55 +323,42 @@ canvas.addEventListener("keydown", (event) => {
   )
     return;
   event.preventDefault();
-  autoMotion = false;
-  motionLabel();
-  if (event.key === "Home") {
-    targetYaw = -0.28;
-    targetPitch = 0.4;
-  } else if (event.key === "ArrowLeft") targetYaw -= 0.2;
-  else if (event.key === "ArrowRight") targetYaw += 0.2;
-  else
-    targetPitch = Math.max(
-      -1.1,
-      Math.min(1.1, targetPitch + (event.key === "ArrowUp" ? -0.2 : 0.2)),
-    );
-  update();
+  stopMotion();
+  if (event.key === "Home") reset();
+  else {
+    if (event.key === "ArrowLeft") yaw -= 0.2;
+    else if (event.key === "ArrowRight") yaw += 0.2;
+    else pitch = clampPitch(pitch + (event.key === "ArrowUp" ? -0.2 : 0.2));
+    update();
+  }
 });
-document.querySelector("#reset-view").addEventListener("click", () => {
-  targetYaw = -0.28;
-  targetPitch = 0.4;
-  update();
-});
+document.querySelector("#reset-view").addEventListener("click", reset);
 motionButton.addEventListener("click", () => {
-  autoMotion = !autoMotion;
-  motionLabel();
-  if (autoMotion && !frame) frame = requestAnimationFrame(animate);
-  else draw();
+  if (autoMotion) stopMotion();
+  else {
+    autoMotion = true;
+    lastTime = null;
+    motionLabel();
+  }
+  update();
 });
 reduced.addEventListener("change", () => {
   if (reduced.matches) {
-    autoMotion = false;
-    motionLabel();
-    draw();
+    stopMotion();
+    update();
   }
 });
+function visibilityChanged() {
+  lastTime = null;
+  if (!visible || document.hidden) {
+    cancelAnimationFrame(frame);
+    frame = 0;
+  } else update();
+}
+motionLabel();
 new ResizeObserver(resize).observe(canvas);
 new IntersectionObserver(([entry]) => {
   visible = entry.isIntersecting;
-  if (visible) {
-    update();
-    if (autoMotion && !frame) frame = requestAnimationFrame(animate);
-  } else {
-    cancelAnimationFrame(frame);
-    frame = 0;
-  }
+  visibilityChanged();
 }).observe(canvas);
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    cancelAnimationFrame(frame);
-    frame = 0;
-  } else {
-    update();
-    if (autoMotion && !frame) frame = requestAnimationFrame(animate);
-  }
-});
+document.addEventListener("visibilitychange", visibilityChanged);
