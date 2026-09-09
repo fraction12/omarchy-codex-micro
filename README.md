@@ -46,37 +46,65 @@ these changes from its cached configuration.
 
 ## Install
 
-Clone the repository somewhere permanent. If the repository is private,
-authenticate with GitHub first.
+### 1. Clone the plugin
+
+Keep the checkout somewhere permanent; Omarchy runs the plugin from this folder.
 
 ```bash
 git clone https://github.com/fraction12/omarchy-codex-micro.git
 cd omarchy-codex-micro
-scripts/install
 ```
 
-The installer creates `config/mappings.json` from `config/defaults.json` only
-when it does not already exist. Personal mappings are ignored by this Git
-repository; updates do not overwrite them. The starter layers contain basic
-navigation keys and otherwise unassigned controls, with app focus and Quick
-Micro off. Installation does **not** upload these defaults to the device.
+### 2. Allow access to the device
 
-The checkout is linked at `~/.config/omarchy/plugins/fraction12.codex-micro`.
-The installer backs up host bindings, adds one generated-file include to
-`~/.config/hypr/bindings.lua`, validates/reloads Hyprland, and enables the widget.
-Failed setup steps restore the host files and plugin link from a private backup.
-Open it from the bar and assign your controls. The first action change uploads
-the complete configured layers 2 and 3; inspect the starter mappings first.
-
-For HID access, install the narrow device-specific rule once, then reconnect:
+Install the narrow device-specific rule once:
 
 ```bash
 sudo install -m 0644 udev/70-omarchy-codex-micro.rules /etc/udev/rules.d/70-omarchy-codex-micro.rules
 sudo udevadm control --reload-rules
 ```
 
-The rule grants the active local seat access to this device's USB/Bluetooth
-vendor interface. It does not grant general keyboard or uinput access.
+Reconnect the Micro afterward. For Bluetooth, pair it through your usual system
+settings first, then disconnect and reconnect it. The rule grants the active
+local seat access to this device's USB/Bluetooth vendor interface. It does not
+grant general keyboard or uinput access.
+
+### 3. Install and open
+
+Run this as your normal desktop user, without `sudo`:
+
+```bash
+scripts/install
+omarchy-shell shell toggle fraction12.codex-micro '{}'
+```
+
+You can also open the editor from its new bar widget.
+
+### 4. Set up your layers
+
+Select layer 2 or 3, select a control, then choose a key or shortcut. Changes save
+automatically. App focus and Quick Micro are optional and start off.
+
+**Before your first action change:** inspect the starter mappings. The first
+change uploads the complete configured layers 2 and 3, replacing their existing
+mappings on the device. Installation itself does **not** upload anything.
+
+The installer creates `config/mappings.json` from `config/defaults.json` only
+when it does not already exist. The starter layers contain basic navigation
+keys and otherwise unassigned controls. Personal mappings are ignored by this
+Git repository; updates do not overwrite them.
+
+<details>
+<summary>What the installer changes</summary>
+
+The checkout is linked at `~/.config/omarchy/plugins/fraction12.codex-micro`.
+The installer backs up host bindings, adds one generated-file include to
+`~/.config/hypr/bindings.lua`, validates/reloads Hyprland, and enables the widget.
+Failed setup steps restore the host files and plugin link from a private backup.
+
+</details>
+
+### Optional keyboard shortcut
 
 To add a normal keyboard shortcut in your own `bindings.lua`, choose an unused
 combination, for example:
