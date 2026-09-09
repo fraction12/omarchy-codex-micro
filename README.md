@@ -8,9 +8,10 @@ or explicit commands. Keep your mappings in files you can inspect and version.
 over USB and Bluetooth. Installation on a second machine is not yet verified.
 This is an independent community project, not an official OpenAI product.
 
-![Codex Micro editor](docs/screenshots/editor.png)
+![Codex Micro for Omarchy — keys, shortcuts, and app focus](docs/social/launch.png)
 
-The screenshot shows customized mappings; fresh installs start with portable defaults.
+The launch graphic shows customized mappings; fresh installs start with portable defaults.
+[View the unedited editor screenshot](docs/screenshots/editor.png).
 
 ## Features
 
