@@ -1,5 +1,7 @@
 # Omarchy Codex Micro
 
+[Website](https://fraction12.github.io/omarchy-codex-micro/) · [Install](#install) · [Report an issue](https://github.com/fraction12/omarchy-codex-micro/issues)
+
 A visual Omarchy plugin for configuring Codex Micro layers with typed JSON.
 Map keys, dial, and joystick to keyboard keys, existing Omarchy shortcuts,
 or explicit commands. Keep your mappings in files you can inspect and version.

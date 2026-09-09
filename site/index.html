@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#141718">
+<title>Codex Micro for Omarchy — Your whole workflow</title>
+<meta name="description" content="Make Codex Micro your own with a visual Omarchy plugin. Map keys, dial and joystick, focus apps, use push-to-talk, and version your JSON. Open-source alpha.">
+<link rel="canonical" href="https://fraction12.github.io/omarchy-codex-micro/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Codex Micro for Omarchy — Your whole workflow">
+<meta property="og:description" content="Keys, shortcuts, app focus, and voice input. Configure visually or version your JSON. USB and Bluetooth.">
+<meta property="og:url" content="https://fraction12.github.io/omarchy-codex-micro/">
+<meta property="og:image" content="https://fraction12.github.io/omarchy-codex-micro/assets/launch.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@gargdush">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+<header><a class="brand" href="./">Codex Micro</a><nav aria-label="Main"><a href="#features">Features</a><a href="#install">Install</a><a href="https://github.com/fraction12/omarchy-codex-micro">GitHub</a></nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="headline">
+<div class="intro"><h1 id="headline">Small device.<br>Your whole workflow.</h1><p class="lead">Make the keys, dial, and joystick your own. An Omarchy plugin for Codex Micro, with app focus, voice input, and mappings you can version.</p><div class="actions"><a class="button" href="#install">Install the plugin</a><a class="source" href="https://github.com/fraction12/omarchy-codex-micro">Read the source</a></div><p class="meta">Open source · USB + Bluetooth · 0.1.0 alpha</p></div>
+<figure><a href="assets/editor.png" aria-label="View the full-size Codex Micro editor screenshot"><img src="assets/editor.png" width="450" height="865" alt="Codex Micro editor showing PC and T3 layers, gesture selection, app focus, and the physical layout of mapped keys." fetchpriority="high"></a><figcaption>Actual editor. Shown with custom mappings.</figcaption></figure>
+</section>
+<section id="features" class="features" aria-label="Features">
+<article><h2>Your keys. Your call.</h2><p>Keyboard keys, Omarchy shortcuts, and commands. Single click, double click, or click + hold.</p></article>
+<article><h2>The right app, first.</h2><p>Assign a layer to an app. Focus it before the action, or continue when it is already focused.</p></article>
+<article><h2>Files you can keep.</h2><p>Configure visually. Save automatically. Keep your typed JSON mappings in your own dotfiles.</p></article>
+</section>
+<section id="install" class="install" aria-labelledby="install-heading">
+<div><h2 id="install-heading">Make room for<br>less keyboard.</h2><p class="lead">Start with the <a href="https://github.com/fraction12/omarchy-codex-micro#install">install guide</a>. Connect your Micro and build layers for the way you work.</p><p class="fine">Tested on one workstation with firmware 0.6.2.<br>Independent community project.</p><p class="requirements">Requires Omarchy’s Lua Hyprland API and KeyboardPanel, Python 3.11+, and libxkbcommon. App focus needs user access to <code>/dev/uinput</code>; dictation uses Voxtype.</p></div>
+<div class="steps">
+<details open><summary>01 / Clone</summary><div class="step-body"><p>Keep the checkout somewhere permanent.</p><div class="code-block"><button type="button" class="copy" data-copy="clone" aria-label="Copy clone commands" hidden>Copy</button><pre><code id="clone">git clone https://github.com/fraction12/omarchy-codex-micro.git
+cd omarchy-codex-micro</code></pre></div></div></details>
+<details><summary>02 / Device access</summary><div class="step-body"><p>Install the device-specific rule once, then reconnect your Micro. For Bluetooth, pair it through your system settings first.</p><div class="code-block"><button type="button" class="copy" data-copy="access" aria-label="Copy device access commands" hidden>Copy</button><pre><code id="access">sudo install -m 0644 udev/70-omarchy-codex-micro.rules /etc/udev/rules.d/70-omarchy-codex-micro.rules
+sudo udevadm control --reload-rules</code></pre></div><p>This grants access to the Micro interface, not general keyboard or uinput access.</p></div></details>
+<details><summary>03 / Install &amp; open</summary><div class="step-body"><p>Run as your normal desktop user, without sudo.</p><div class="code-block"><button type="button" class="copy" data-copy="setup" aria-label="Copy install and open commands" hidden>Copy</button><pre><code id="setup">scripts/install
+omarchy-shell shell toggle fraction12.codex-micro '{}'</code></pre></div><p><strong>Before changing an action:</strong> inspect the starter mappings. Your first action edit replaces the device’s configured layers 2 and 3. Installation itself does not write to the device.</p><p>Layer 1 stays Codex-owned, except for the optional Quick Micro dial-double toggle. Avoid editing through Input at the same time.</p><a href="https://github.com/fraction12/omarchy-codex-micro#backup-recovery-and-uninstall">Backup, recovery &amp; uninstall</a></div></details>
+<p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+</div>
+</section>
+</main>
+<footer><span>Made by <a href="https://github.com/fraction12">Dushyant</a>.</span><nav aria-label="Footer"><a href="https://github.com/fraction12/omarchy-codex-micro">GitHub</a><a href="https://github.com/fraction12/omarchy-codex-micro#readme">Documentation</a><a href="https://github.com/fraction12/omarchy-codex-micro/blob/main/LICENSE">MIT License</a></nav></footer>
+</div>
+</body>
+</html>
